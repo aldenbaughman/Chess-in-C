@@ -140,6 +140,7 @@ struct chess_space {
     int notMoved;
 };
 
+//must be updated in ECO
 struct chess_board {
     struct chess_space spaces[CHESS_BOARD_SIZE * CHESS_BOARD_SIZE];
     enum piece * whiteCaptures;
@@ -148,7 +149,10 @@ struct chess_board {
     int numBlackCaptures;
     enum player board_turn;
     enum player inCheck;
-
+    int whiteKingRow;
+    int whiteKingCol;
+    int blackKingRow;
+    int blackKingCol;
 };
 
 struct SMALL_RECT {
@@ -187,5 +191,12 @@ enum moveErr queen_move(struct chess_board *,int startMove_row, int startMove_co
 enum moveErr king_move(struct chess_board *,int startMove_row, int startMove_col,
                     int endMove_row, int endMove_col);
 
+enum moveErr horizVert_checkChecker(struct chess_board * board,int kingRow, int kingCol, enum player ownerOfKing);
+
+enum moveErr diagonal_checkChecker(struct chess_board * board,int kingRow, int kingCol, enum player ownerOfKing);
+
+//enum moveErr knight_checkChecker(struct chess_Board * board, int kingRow, int kingCol, enum player ownerOfKing);
+
+enum moveErr inCheckChecker(struct chess_board *, int , int);
 
 void chess_game();

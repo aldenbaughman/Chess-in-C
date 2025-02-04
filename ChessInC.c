@@ -336,6 +336,139 @@ enum moveErr queen_move(struct chess_board * board,int startMove_row, int startM
 
 }
 
+enum moveErr horizVert_checkChecker(struct chess_board * board,int kingRow, int kingCol, enum player ownerOfKing){
+    //Checks for pieces in the way up 
+    for (int i = kingRow+1; i < 8; i++ ){
+        if (!board->spaces[matrixSpaceAt(kingRow,i)].isEmpty){
+            if(board->spaces[matrixSpaceAt(kingRow,i)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(kingRow,i)].residingPiece == ROOK || 
+                    board->spaces[matrixSpaceAt(kingRow,i)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+        }               
+    }
+    //Checks for pieces down
+    for (int i = kingRow-1; i >- 0; i-- ){
+        if (!board->spaces[matrixSpaceAt(kingRow,i)].isEmpty){
+            if(board->spaces[matrixSpaceAt(kingRow,i)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(kingRow,i)].residingPiece == ROOK || 
+                    board->spaces[matrixSpaceAt(kingRow,i)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                } 
+                else{
+                    break;
+                }
+        }
+    }
+    //Checks for pieces right
+    for (int i = kingCol+1; i < 8; i++ ){
+        if (!board->spaces[matrixSpaceAt(i, kingCol)].isEmpty){
+            if(board->spaces[matrixSpaceAt(i, kingCol)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(i, kingCol)].residingPiece == ROOK || 
+                    board->spaces[matrixSpaceAt(i, kingCol)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+        }
+    }
+    //Checks for pieces left
+    for (int i = kingCol-1; i >= 0; i-- ){
+        if (!board->spaces[matrixSpaceAt(i, kingCol)].isEmpty){
+            if(board->spaces[matrixSpaceAt(i, kingCol)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(i, kingCol)].residingPiece == ROOK || 
+                    board->spaces[matrixSpaceAt(i, kingCol)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+        }
+    }
+    return VALID_PLACEMENT;
+
+}
+
+enum moveErr diagonal_checkChecker(struct chess_board * board,int kingRow, int kingCol, enum player ownerOfKing){
+    for(int i = kingRow+1, j = kingCol+1; i < 8 && j < 8; i++,j++){
+            if (!board->spaces[matrixSpaceAt(i,j)].isEmpty){
+                if(board->spaces[matrixSpaceAt(i,j)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(i,j)].residingPiece == BISHOP || 
+                    board->spaces[matrixSpaceAt(i,j)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+
+        for(int i = kingRow-1, j = kingCol+1; i >= 0 && j < 8; i--,j++){
+            if (!board->spaces[matrixSpaceAt(i,j)].isEmpty){
+                if(board->spaces[matrixSpaceAt(i,j)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(i,j)].residingPiece == BISHOP || 
+                    board->spaces[matrixSpaceAt(i,j)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+
+        for(int i = kingRow+1, j = kingCol-1; i < 8 && j >= 0; i++,j--){
+            if (!board->spaces[matrixSpaceAt(i,j)].isEmpty){
+                if(board->spaces[matrixSpaceAt(i,j)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(i,j)].residingPiece == BISHOP || 
+                    board->spaces[matrixSpaceAt(i,j)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+
+        for(int i = kingRow-1, j = kingCol-1; i >= 0 && j >= 0; i--,j--){
+            if (!board->spaces[matrixSpaceAt(i,j)].isEmpty){
+                if(board->spaces[matrixSpaceAt(i,j)].pieceOwner != ownerOfKing &&
+                    (board->spaces[matrixSpaceAt(i,j)].residingPiece == BISHOP || 
+                    board->spaces[matrixSpaceAt(i,j)].residingPiece == QUEEN) ){
+                    return IN_CHECK_MOVE_ERROR;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+
+        return VALID_PLACEMENT;
+}
+
+/*
+enum moveErr knight_checkChecker(struct chess_Board * board, int kingRow, int kingCol, enum player ownerOfKing){
+    return VALID_PLACEMENT;
+}
+*/
+
+
+// must be called after movement in made, movement must be stimulated or
+// after movement it made and then put it back if it causes a check
+enum moveErr inCheckChecker(struct chess_board * board, int kingRow, int kingCol){
+    enum player ownerOfKing = board->spaces[matrixSpaceAt(kingRow,kingCol)].pieceOwner;
+    if(horizVert_checkChecker(board, kingRow, kingCol, ownerOfKing) == IN_CHECK_MOVE_ERROR){
+        return IN_CHECK_MOVE_ERROR;
+    }
+    if(diagonal_checkChecker(board, kingRow, kingCol, ownerOfKing) == IN_CHECK_MOVE_ERROR){
+        return IN_CHECK_MOVE_ERROR;
+    }
+    return VALID_PLACEMENT;
+}
+
 enum moveErr king_move(struct chess_board * board,int startMove_row, int startMove_col,
                     int endMove_row, int endMove_col){
     if ((abs(endMove_row-startMove_row) == 1 && abs(endMove_col-startMove_col) == 1) ||
@@ -346,10 +479,12 @@ enum moveErr king_move(struct chess_board * board,int startMove_row, int startMo
     return INVALID_PLACEMENT_MOVE_ERROR;
 }
 
+
 enum moveErr chess_move(struct chess_board * board, int startMove_row, int startMove_col,
                     int endMove_row, int endMove_col){
     
     enum moveErr movementOutput;
+
     //Checking if the input movement is within the board
     if (startMove_row < 0 || startMove_col < 0 || endMove_row < 0 || startMove_col < 0 || 
             startMove_row > 7 || startMove_col > 7 || endMove_row > 7 || startMove_col > 7){
@@ -404,6 +539,11 @@ enum moveErr chess_move(struct chess_board * board, int startMove_row, int start
         break;
     }
 
+    if(board->board_turn == WHITE){
+        //inCheckChecker(board, )
+    }
+
+
     if (movementOutput == VALID_PLACEMENT){
         enum piece movedPiece = startSpace.residingPiece; 
         enum player movedPiecePlayer = startSpace.pieceOwner;
@@ -432,7 +572,15 @@ enum moveErr chess_move(struct chess_board * board, int startMove_row, int start
             if(endSpace.pieceOwner != startSpace.pieceOwner && endSpace.residingPiece == KING){
                 movementOutput = WINNING_MOVE;
             }
-            board->spaces[matrixSpaceAt(endMove_row, endMove_col)].residingPiece = movedPiece;
+            //Allows for Pawn Promotion
+            if(startSpace.residingPiece == PAWN && 
+            ((endMove_row == 7 && startSpace.pieceOwner == WHITE)||
+             (endMove_row == 0 && startSpace.pieceOwner == BLACK))){
+                board->spaces[matrixSpaceAt(endMove_row, endMove_col)].residingPiece = QUEEN;
+            }
+            else{
+                board->spaces[matrixSpaceAt(endMove_row, endMove_col)].residingPiece = movedPiece;
+            }
             board->spaces[matrixSpaceAt(endMove_row, endMove_col)].pieceOwner = movedPiecePlayer;
             board->spaces[matrixSpaceAt(endMove_row, endMove_col)].isEmpty = 0;
             board->spaces[matrixSpaceAt(startMove_row, startMove_col)].residingPiece = NO_PIECE;
@@ -520,7 +668,7 @@ void chess_game(){
 
         case WINNING_MOVE:
         chess_draw(the_board);
-        printf("actual moves: row %d col %d\n", movements[4]-'1', tolower(movements[3] - 'a'));
+        //printf("actual moves: row %d col %d\n", movements[4]-'1', tolower(movements[3] - 'a'));
         printf("%s%s", PLAYER_TO_STRING_TEXT(the_board->board_turn), MOVEERR_TO_STRING(WINNING_MOVE));
         fflush(stdin);
         char x;
